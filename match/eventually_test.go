@@ -13,12 +13,12 @@ func TestEventually(t *testing.T) {
 	c := NewContext(t)
 
 	matcher := Eventually(Eq(5))
-	Assert(c, matcher.Match(func() int { return 3 }).Error(), Eq("still 3 != 5"))
-	Assert(c, matcher.Match(func() int { return 5 }), Eq[error](nil))
+	Assert(c, matcher.Match(3).Error(), Eq("still 3 != 5"))
+	Assert(c, matcher.Match(5), Eq[error](nil))
 	Assert(c, matcher.Explain(), Eq("eventually equal 5"))
 }
 
-func ExampleEventually() {
+func ExampleEventually_func() {
 	c := NewMockContext() // Would normally be NewContext(t)
 
 	var value int64
@@ -31,5 +31,29 @@ func ExampleEventually() {
 
 	Assert(c, func() int64 {
 		return atomic.LoadInt64(&value)
-	}, Eventually(Eq(int64(5))))
+	}, Eventually(Returns(Eq(int64(5)))))
+}
+
+func ExampleEventually_chan() {
+	c := NewMockContext() // Would normally be NewContext(t)
+
+	ch := make(chan string)
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		ch <- "hello"
+	}()
+
+	Assert(c, ch, Eventually(Produces(Eq("hello"))))
+}
+
+func TestSomething(t *testing.T) {
+	c := NewContext(t)
+
+	ch := make(chan string)
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		ch <- "hello2"
+	}()
+
+	Assert(c, ch, Eventually(Produces(Eq("hello"))))
 }
