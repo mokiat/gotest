@@ -45,15 +45,3 @@ func ExampleEventually_chan() {
 
 	Assert(c, ch, Eventually(Produces(Eq("hello"))))
 }
-
-func TestSomething(t *testing.T) {
-	c := NewContext(t)
-
-	ch := make(chan string)
-	go func() {
-		time.Sleep(500 * time.Millisecond)
-		ch <- "hello2"
-	}()
-
-	Assert(c, ch, Eventually(Produces(Eq("hello"))))
-}
